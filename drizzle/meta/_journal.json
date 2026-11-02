@@ -15,6 +15,13 @@
       "when": 1793588197998,
       "tag": "0001_useful_korvac",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793651994285,
+      "tag": "0002_lush_jocasta",
+      "breakpoints": true
     }
   ]
 }
