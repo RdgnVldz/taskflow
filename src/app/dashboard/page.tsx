@@ -1,3 +1,7 @@
+import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+import { getUserWorkspaces } from "@/src/lib/workspace";
+import { CreateWorkspaceForm } from "./create-workspace-form";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { LayoutDashboard, LogOut } from "lucide-react";
@@ -33,7 +37,7 @@ export default function DashboardPage() {
         <Suspense
           fallback={<div className="h-32 animate-pulse rounded-xl bg-muted" />}
         >
-          <Welcome />
+          <WorkspaceSection />
         </Suspense>
       </main>
     </div>
@@ -66,19 +70,45 @@ async function UserMenu() {
   );
 }
 
-async function Welcome() {
+async function WorkspaceSection() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
+  const list = await getUserWorkspaces(user.id);
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-2xl">Welcome back, {user.name}</CardTitle>
-        <CardDescription>{user.email}</CardDescription>
-      </CardHeader>
-      <CardContent className="text-sm text-muted-foreground">
-        Your workspaces will show up here.
-      </CardContent>
-    </Card>
+    <div className="grid gap-8">
+      <div>
+        <h1 className="text-2xl font-bold">Your workspaces</h1>
+        <p className="text-sm text-muted-foreground">
+          Welcome back, {user.name}
+        </p>
+      </div>
+
+      {list.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          You don&apos;t belong to any workspace yet. Create your first one below.
+        </p>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {list.map((w) => (
+            <Link key={w.id} href={`/w/${w.slug}`}>
+              <Card className="transition-colors hover:bg-accent">
+                <CardHeader>
+                  <CardTitle>{w.name}</CardTitle>
+                  <CardDescription>
+                    <Badge variant="secondary" className="capitalize">
+                      {w.role}
+                    </Badge>
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      )}
+
+      <CreateWorkspaceForm />
+    </div>
   );
 }

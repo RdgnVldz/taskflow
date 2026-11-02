@@ -92,7 +92,7 @@ export function AuthForm({
         </CardContent>
 
         <CardFooter className="mt-6 flex-col gap-4">
-          <Button type="submit" className="w-full" disabled={pending}>
+          <Button type="submit" variant="outline" className="w-full " disabled={pending}>
             {pending && <Loader2 className="animate-spin" />}
             {pending ? "Please wait..." : submitLabel}
           </Button>
