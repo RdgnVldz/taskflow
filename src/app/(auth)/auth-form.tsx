@@ -1,56 +1,112 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
+import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import type { FormState } from "./actions";
 
 type Props = {
   title: string;
+  description: string;
   submitLabel: string;
   action: (prev: FormState, formData: FormData) => Promise<FormState>;
   showName?: boolean;
+  footerText: string;
+  footerLinkLabel: string;
+  footerHref: string;
 };
 
-export function AuthForm({ title, submitLabel, action, showName }: Props) {
+export function AuthForm({
+  title,
+  description,
+  submitLabel,
+  action,
+  showName,
+  footerText,
+  footerLinkLabel,
+  footerHref,
+}: Props) {
   const [state, formAction, pending] = useActionState(action, undefined);
 
   return (
-    <form
-      action={formAction}
-      className="mx-auto mt-24 flex max-w-sm flex-col gap-4 p-4"
-    >
-      <h1 className="text-2xl font-bold">{title}</h1>
+    <Card className="w-full max-w-sm">
+      <CardHeader className="text-center">
+        <CardTitle className="text-2xl">{title}</CardTitle>
+        <CardDescription>{description}</CardDescription>
+      </CardHeader>
 
-      {showName && (
-        <input
-          name="name"
-          placeholder="Name"
-          required
-          className="rounded border bg-white p-2 text-black"
-        />
-      )}
-      <input
-        name="email"
-        type="email"
-        placeholder="Email"
-        required
-        className="rounded border bg-white p-2 text-black"
-      />
-      <input
-        name="password"
-        type="password"
-        placeholder="Password"
-        required
-        className="rounded border bg-white p-2 text-black"
-      />
+      <form action={formAction}>
+        <CardContent className="grid gap-4">
+          {showName && (
+            <div className="grid gap-2">
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                name="name"
+                placeholder="Your name"
+                autoComplete="name"
+                required
+              />
+            </div>
+          )}
 
-      {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
+          <div className="grid gap-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="you@example.com"
+              autoComplete="email"
+              required
+            />
+          </div>
 
-      <button
-        disabled={pending}
-        className="rounded bg-blue-600 p-2 text-white disabled:opacity-50"
-      >
-        {pending ? "Please wait..." : submitLabel}
-      </button>
-    </form>
+          <div className="grid gap-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete={showName ? "new-password" : "current-password"}
+              required
+            />
+          </div>
+
+          {state?.error && (
+            <p role="alert" className="text-sm text-destructive">
+              {state.error}
+            </p>
+          )}
+        </CardContent>
+
+        <CardFooter className="mt-6 flex-col gap-4">
+          <Button type="submit" className="w-full" disabled={pending}>
+            {pending && <Loader2 className="animate-spin" />}
+            {pending ? "Please wait..." : submitLabel}
+          </Button>
+          <p className="text-sm text-muted-foreground">
+            {footerText}{" "}
+            <Link
+              href={footerHref}
+              className="font-medium text-foreground underline-offset-4 hover:underline"
+            >
+              {footerLinkLabel}
+            </Link>
+          </p>
+        </CardFooter>
+      </form>
+    </Card>
   );
 }
