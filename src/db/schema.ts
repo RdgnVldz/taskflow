@@ -5,7 +5,8 @@ import {
     text,
     timestamp,
     primaryKey,
-    index
+    index,
+    doublePrecision
 } from "drizzle-orm/pg-core";
 
 export const roleEnum = pgEnum("role", ["owner", "admin", "member"]);
@@ -92,6 +93,7 @@ export const tasks = pgTable(
     title: text("title").notNull(),
     status: taskStatusEnum("status").notNull().default("todo"),
     priority: taskPriorityEnum("priority").notNull().default("medium"),
+    position: doublePrecision("position").notNull().default(0),
     createdBy: uuid("created_by").references(() => users.id, {
       onDelete: "set null",
     }),

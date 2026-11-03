@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
 import { projects, tasks } from "@/db/schema";
@@ -79,39 +79,56 @@ export async function createTask(
     .limit(1);
     if (!owned) return { error: "Project not found" };
 
-  await db.insert(tasks).values({
-    projectId: id.data,
-    title: parsed.data.title,
-    priority: parsed.data.priority,
+  const [{ last }] = await db
+    .select({ last: sql<number>`coalesce(max(${tasks.position}), 0)` })
+    .from(tasks)
+    .where(and(eq(tasks.projectId, id.data), eq(tasks.status, "todo")));
+
+    await db.insert(tasks).values({
+      projectId: id.data,
+      title: parsed.data.title,
+      priority: parsed.data.priority,
     createdBy: user.id,
-  });
+    position: Number(last) + 1024,
+});
 
   revalidatePath(`/w/${slug}`, "layout");
 }
 
-export async function moveTask(
+export async function reorderTask(
   slug: string,
   taskId: string,
   status: string,
-  _formData: FormData
-) {
+  position: number
+): Promise<{ error?: string }> {
   const { workspace } = await requireWorkspaceAccess(slug);
 
   const id = z.uuid().safeParse(taskId);
   const newStatus = statusSchema.safeParse(status);
-  if (!id.success || !newStatus.success) return;
+  const newPosition = z.number().finite().safeParse(position);
+  if (!id.success || !newStatus.success || !newPosition.success) {
+    return { error: "Invalid move" };
+  }
 
-  await db
+  const updated = await db
     .update(tasks)
-    .set({ status: newStatus.data, updatedAt: new Date() })
+    .set({
+      status: newStatus.data,
+      position: newPosition.data,
+      updatedAt: new Date(),
+    })
     .where(
       and(
         eq(tasks.id, id.data),
         inArray(tasks.projectId, workspaceProjectIds(workspace.id))
       )
-    );
+    )
+    .returning({ id: tasks.id });
+
+  if (updated.length === 0) return { error: "Task not found" };
 
   revalidatePath(`/w/${slug}`, "layout");
+  return {};
 }
 
 export async function deleteTask(

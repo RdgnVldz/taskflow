@@ -37,7 +37,7 @@ export const getProjectTasks = cache(async (projectId: string) => {
     .select()
     .from(tasks)
     .where(eq(tasks.projectId, projectId))
-    .orderBy(tasks.createdAt);
+    .orderBy(tasks.position, tasks.createdAt);
 });
 
 // getProjectInWorkspace takes both IDs, so a project ID from another workspace returns nothing.

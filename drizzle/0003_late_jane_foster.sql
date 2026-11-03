@@ -1,0 +1,1 @@
+ALTER TABLE "tasks" ADD COLUMN "position" double precision DEFAULT 0 NOT NULL;
