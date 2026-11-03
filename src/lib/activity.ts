@@ -10,7 +10,11 @@ export type ActivityType =
   | "task.created"
   | "task.moved"
   | "task.updated"
-  | "comment.added";
+  | "comment.added"
+  | "member.invited"
+  | "member.joined"
+  | "member.removed"
+  | "member.role_changed";
 
 export async function logActivity(
   tx: Tx,

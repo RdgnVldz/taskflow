@@ -36,6 +36,13 @@
       "when": 1793690239162,
       "tag": "0004_flat_sabretooth",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793691432811,
+      "tag": "0005_complex_catseye",
+      "breakpoints": true
     }
   ]
 }

@@ -1,7 +1,8 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { ArrowLeft, FolderKanban } from "lucide-react";
+import { ArrowLeft, FolderKanban, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardDescription,
@@ -45,11 +46,20 @@ async function WorkspaceContent({ params }: { params: Params }) {
 
   return (
     <div className="grid gap-8">
-      <div className="flex items-center gap-3">
-        <h1 className="text-2xl font-bold">{workspace.name}</h1>
-        <Badge variant="secondary" className="capitalize">
-          {role}
-        </Badge>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold">{workspace.name}</h1>
+          <Badge variant="secondary" className="capitalize">
+            {role}
+          </Badge>
+        </div>
+        <Link
+          href={`/w/${slug}/members`}
+          className={buttonVariants({ variant: "outline", size: "sm" })}
+        >
+          <Users />
+          Members
+        </Link>
       </div>
 
       <section className="grid gap-4">

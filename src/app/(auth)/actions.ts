@@ -21,6 +21,13 @@ const loginSchema = z.object({
   password: z.string().min(1),
 });
 
+// Only allow same-site paths, never external URLs (open-redirect protection)
+function safeNext(value: FormDataEntryValue | null) {
+  const v = typeof value === "string" ? value : "";
+  const internal = v.startsWith("/") && !v.startsWith("//") && !v.startsWith("/\\");
+  return internal ? v : "/dashboard";
+}
+
 export async function signup(
   _prev: FormState,
   formData: FormData
@@ -42,7 +49,7 @@ export async function signup(
     .returning({ id: users.id });
 
   await createSession(user.id);
-  redirect("/dashboard");
+  redirect(safeNext(formData.get("next")));
 }
 
 export async function login(
@@ -61,7 +68,7 @@ export async function login(
   if (!user || !valid) return { error: "Invalid email or password" };
 
   await createSession(user.id);
-  redirect("/dashboard");
+  redirect(safeNext(formData.get("next")));
 }
 
 export async function logout() {

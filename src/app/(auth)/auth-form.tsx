@@ -15,6 +15,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import type { FormState } from "./actions";
+import { useSearchParams } from "next/navigation";
 
 type Props = {
   title: string;
@@ -39,6 +40,12 @@ export function AuthForm({
 }: Props) {
   const [state, formAction, pending] = useActionState(action, undefined);
 
+  const next = useSearchParams().get("next");
+  const footerLink = next
+  ? `${footerHref}?next=${encodeURIComponent(next)}`
+  : footerHref;
+
+
   return (
     <Card className="w-full max-w-sm">
       <CardHeader className="text-center">
@@ -47,6 +54,7 @@ export function AuthForm({
       </CardHeader>
 
       <form action={formAction}>
+        <input type="hidden" name="next" value={next ?? ""} />
         <CardContent className="grid gap-4">
           {showName && (
             <div className="grid gap-2">
@@ -99,7 +107,7 @@ export function AuthForm({
           <p className="text-sm text-muted-foreground">
             {footerText}{" "}
             <Link
-              href={footerHref}
+              href={footerLink}
               className="font-medium text-foreground underline-offset-4 hover:underline"
             >
               {footerLinkLabel}
