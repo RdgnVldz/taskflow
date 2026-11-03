@@ -4,10 +4,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { and, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
-import { db } from "@/src/db";
-import { projects, tasks } from "@/src/db/schema";
-import { requireWorkspaceAccess } from "@/src/lib/workspace";
-import { hasRole } from "@/src/lib/roles";
+import { db } from "@/db";
+import { projects, tasks } from "@/db/schema";
+import { requireWorkspaceAccess } from "@/lib/workspace";
+import { hasRole } from "@/lib/roles";
 
 export type FormState = { error?: string } | undefined;
 
@@ -70,10 +70,14 @@ export async function createTask(
   const id = z.uuid().safeParse(projectId);
   if (!id.success) return { error: "Project not found" };
 
-  const [owned] = await workspaceProjectIds(workspace.id).where(
-    and(eq(projects.workspaceId, workspace.id), eq(projects.id, id.data))
-  );
-  if (!owned) return { error: "Project not found" };
+    const [owned] = await db
+    .select({ id: projects.id })
+    .from(projects)
+    .where(
+        and(eq(projects.id, id.data), eq(projects.workspaceId, workspace.id))
+    )
+    .limit(1);
+    if (!owned) return { error: "Project not found" };
 
   await db.insert(tasks).values({
     projectId: id.data,

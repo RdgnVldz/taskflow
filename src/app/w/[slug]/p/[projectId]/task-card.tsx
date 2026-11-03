@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { tasks } from "@/src/db/schema";
+import type { tasks } from "@/db/schema";
 import { deleteTask, moveTask } from "../../actions";
 
 type Task = typeof tasks.$inferSelect;

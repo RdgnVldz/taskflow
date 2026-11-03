@@ -2,9 +2,9 @@ import "server-only";
 import { cache } from "react";
 import { and, eq } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
-import { db } from "@/src/db";
-import { memberships, workspaces } from "@/src/db/schema";
-import { getCurrentUser } from "@/src/lib/session";
+import { db } from "@/db";
+import { memberships, workspaces } from "@/db/schema";
+import { getCurrentUser } from "@/lib/session";
 
 export const getUserWorkspaces = cache(async (userId: string) => {
   return db

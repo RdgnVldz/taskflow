@@ -3,8 +3,8 @@ import { cache } from "react";
 import { and, eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { z } from "zod";
-import { db } from "@/src/db";
-import { projects, tasks } from "@/src/db/schema";
+import { db } from "@/db";
+import { projects, tasks } from "@/db/schema";
 
 export const getWorkspaceProjects = cache(async (workspaceId: string) => {
   return db

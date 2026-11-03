@@ -4,9 +4,9 @@ import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
-import { db } from "@/src/db";
-import { users } from "@/src/db/schema";
-import { createSession, destroySession } from "@/src/lib/session";
+import { db } from "@/db";
+import { users } from "@/db/schema";
+import { createSession, destroySession } from "@/lib/session";
 
 export type FormState = { error?: string } | undefined;
 

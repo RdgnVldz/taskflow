@@ -2,8 +2,8 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { requireWorkspaceAccess } from "@/src/lib/workspace";
-import { getProjectInWorkspace, getProjectTasks } from "@/src/lib/projects";
+import { requireWorkspaceAccess } from "@/lib/workspace";
+import { getProjectInWorkspace, getProjectTasks } from "@/lib/projects";
 import { CreateTaskForm } from "./create-task-form";
 import { TaskCard } from "./task-card";
 

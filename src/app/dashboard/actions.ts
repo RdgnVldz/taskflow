@@ -3,9 +3,9 @@
 import { randomBytes } from "node:crypto";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { db } from "@/src/db";
-import { memberships, workspaces } from "@/src/db/schema";
-import { getCurrentUser } from "@/src/lib/session";
+import { db } from "@/db";
+import { memberships, workspaces } from "@/db/schema";
+import { getCurrentUser } from "@/lib/session";
 
 export type WorkspaceFormState = { error?: string } | undefined;
 

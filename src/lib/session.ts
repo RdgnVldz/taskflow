@@ -3,8 +3,8 @@ import { createHash, randomBytes } from "node:crypto";
 import { cache } from "react";
 import { cookies } from "next/headers";
 import { eq } from "drizzle-orm";
-import { db } from "@/src/db";
-import { sessions, users } from "@/src/db/schema";
+import { db } from "@/db";
+import { sessions, users } from "@/db/schema";
 
 const COOKIE_NAME = "session";
 const SESSION_DAYS = 30;

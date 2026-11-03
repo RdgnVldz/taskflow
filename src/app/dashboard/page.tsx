@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { getUserWorkspaces } from "@/src/lib/workspace";
+import { getUserWorkspaces } from "@/lib/workspace";
 import { CreateWorkspaceForm } from "./create-workspace-form";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { LayoutDashboard, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
 import {
   Card,
   CardContent,
@@ -13,8 +14,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { getCurrentUser } from "@/src/lib/session";
-import { logout } from "@/src/app/(auth)/actions";
+import { getCurrentUser } from "@/lib/session";
+import { logout } from "@/app/(auth)/actions";
 
 export default function DashboardPage() {
   return (
@@ -25,11 +26,14 @@ export default function DashboardPage() {
             <LayoutDashboard className="size-5" />
             TaskFlow
           </div>
-          <Suspense
-            fallback={<div className="h-8 w-28 animate-pulse rounded-md bg-muted" />}
-          >
-            <UserMenu />
-          </Suspense>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Suspense
+              fallback={<div className="h-8 w-28 animate-pulse rounded-md bg-muted" />}
+            >
+              <UserMenu />
+            </Suspense>
+          </div>
         </div>
       </header>
 
