@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { tasks } from "@/db/schema";
 import { deleteTask } from "../../actions";
+import Link from "next/link";
 
 type Task = typeof tasks.$inferSelect;
 
@@ -40,7 +41,12 @@ export function TaskCard({
       )}
 
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium break-words">{task.title}</p>
+        <Link
+          href={`/w/${slug}/p/${task.projectId}/t/${task.id}`}
+          className="text-sm font-medium break-words hover:underline"
+        >
+          {task.title}
+        </Link>
 
         <div className="mt-3 flex items-center justify-between">
           <Badge variant={priorityVariant[task.priority]} className="capitalize">

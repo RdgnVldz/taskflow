@@ -8,6 +8,7 @@ import { db } from "@/db";
 import { projects, tasks } from "@/db/schema";
 import { requireWorkspaceAccess } from "@/lib/workspace";
 import { hasRole } from "@/lib/roles";
+import { logActivity } from "@/lib/activity";
 
 export type FormState = { error?: string } | undefined;
 
@@ -70,27 +71,40 @@ export async function createTask(
   const id = z.uuid().safeParse(projectId);
   if (!id.success) return { error: "Project not found" };
 
-    const [owned] = await db
+  const [owned] = await db
     .select({ id: projects.id })
     .from(projects)
     .where(
-        and(eq(projects.id, id.data), eq(projects.workspaceId, workspace.id))
+      and(eq(projects.id, id.data), eq(projects.workspaceId, workspace.id))
     )
     .limit(1);
-    if (!owned) return { error: "Project not found" };
+  if (!owned) return { error: "Project not found" };
 
   const [{ last }] = await db
     .select({ last: sql<number>`coalesce(max(${tasks.position}), 0)` })
     .from(tasks)
     .where(and(eq(tasks.projectId, id.data), eq(tasks.status, "todo")));
 
-    await db.insert(tasks).values({
-      projectId: id.data,
-      title: parsed.data.title,
-      priority: parsed.data.priority,
-    createdBy: user.id,
-    position: Number(last) + 1024,
-});
+  await db.transaction(async (tx) => {
+    const [task] = await tx
+      .insert(tasks)
+      .values({
+        projectId: id.data,
+        title: parsed.data.title,
+        priority: parsed.data.priority,
+        createdBy: user.id,
+        position: Number(last) + 1024,
+      })
+      .returning({ id: tasks.id });
+
+    await logActivity(tx, {
+      workspaceId: workspace.id,
+      taskId: task.id,
+      actorId: user.id,
+      type: "task.created",
+      meta: { title: parsed.data.title },
+    });
+  });
 
   revalidatePath(`/w/${slug}`, "layout");
 }
@@ -101,7 +115,7 @@ export async function reorderTask(
   status: string,
   position: number
 ): Promise<{ error?: string }> {
-  const { workspace } = await requireWorkspaceAccess(slug);
+  const { workspace, user } = await requireWorkspaceAccess(slug);
 
   const id = z.uuid().safeParse(taskId);
   const newStatus = statusSchema.safeParse(status);
@@ -110,25 +124,44 @@ export async function reorderTask(
     return { error: "Invalid move" };
   }
 
-  const updated = await db
-    .update(tasks)
-    .set({
-      status: newStatus.data,
-      position: newPosition.data,
-      updatedAt: new Date(),
-    })
-    .where(
-      and(
-        eq(tasks.id, id.data),
-        inArray(tasks.projectId, workspaceProjectIds(workspace.id))
+  const result: { error?: string } = await db.transaction(async (tx) => {
+    const [current] = await tx
+      .select({ status: tasks.status })
+      .from(tasks)
+      .where(
+        and(
+          eq(tasks.id, id.data),
+          inArray(tasks.projectId, workspaceProjectIds(workspace.id))
+        )
       )
-    )
-    .returning({ id: tasks.id });
+      .limit(1);
 
-  if (updated.length === 0) return { error: "Task not found" };
+    if (!current) return { error: "Task not found" };
 
-  revalidatePath(`/w/${slug}`, "layout");
-  return {};
+    await tx
+      .update(tasks)
+      .set({
+        status: newStatus.data,
+        position: newPosition.data,
+        updatedAt: new Date(),
+      })
+      .where(eq(tasks.id, id.data));
+
+    if (current.status !== newStatus.data) {
+      await logActivity(tx, {
+        workspaceId: workspace.id,
+        taskId: id.data,
+        actorId: user.id,
+        type: "task.moved",
+        meta: { from: current.status, to: newStatus.data },
+      });
+    }
+
+    return {};
+  });
+
+  if (!result.error) revalidatePath(`/w/${slug}`, "layout");
+  return result;
 }
 
 export async function deleteTask(

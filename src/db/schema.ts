@@ -6,7 +6,8 @@ import {
     timestamp,
     primaryKey,
     index,
-    doublePrecision
+    doublePrecision,
+    jsonb,
 } from "drizzle-orm/pg-core";
 
 export const roleEnum = pgEnum("role", ["owner", "admin", "member"]);
@@ -91,6 +92,7 @@ export const tasks = pgTable(
       .notNull()
       .references(() => projects.id, { onDelete: "cascade" }),
     title: text("title").notNull(),
+    description: text("description"),
     status: taskStatusEnum("status").notNull().default("todo"),
     priority: taskPriorityEnum("priority").notNull().default("medium"),
     position: doublePrecision("position").notNull().default(0),
@@ -105,4 +107,45 @@ export const tasks = pgTable(
       .defaultNow(),
   },
   (t) => [index("tasks_project_status_idx").on(t.projectId, t.status)]
+);
+
+export const comments = pgTable(
+  "comments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    taskId: uuid("task_id")
+      .notNull()
+      .references(() => tasks.id, { onDelete: "cascade" }),
+    authorId: uuid("author_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    body: text("body").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("comments_task_created_idx").on(t.taskId, t.createdAt)]
+);
+
+export const activity = pgTable(
+  "activity",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    taskId: uuid("task_id").references(() => tasks.id, { onDelete: "cascade" }),
+    actorId: uuid("actor_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    type: text("type").notNull(),
+    meta: jsonb("meta").$type<Record<string, unknown>>().notNull().default({}),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("activity_task_created_idx").on(t.taskId, t.createdAt),
+    index("activity_workspace_created_idx").on(t.workspaceId, t.createdAt),
+  ]
 );
